@@ -7,9 +7,9 @@ public final class Transaction {
     public enum Type {EXPENSE, INCOME}
 
     private final UUID id;
-    private final Type type;
-    private final double amount;
-    private final String description;
+    private Type type;
+    private double amount;
+    private String description;
 
     private Transaction(UUID id, Type type, double amount, String description) {
         this.id = id;
@@ -46,6 +46,21 @@ public final class Transaction {
         }
     }
 
+    public static Transaction copy(Transaction other) {
+        validateOther(other);
+
+        return new Transaction(
+                other.id,
+                other.type,
+                other.amount,
+                other.description
+        );
+    }
+
+    private static void validateOther(Transaction other) {
+        Objects.requireNonNull(other, "Other must not be null");
+    }
+
     public UUID getId() {
         return id;
     }
@@ -60,6 +75,21 @@ public final class Transaction {
 
     public String getDescription() {
         return description;
+    }
+
+    public void setType(Type type) {
+        validateType(type);
+        this.type = type;
+    }
+
+    public void setAmount(double amount) {
+        validateAmount(amount);
+        this.amount = amount;
+    }
+
+    public void setDescription(String description) {
+        validateDescription(description);
+        this.description = description;
     }
 
     @Override
