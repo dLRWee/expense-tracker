@@ -1,5 +1,6 @@
 package io.dlrwee.expensetracker.domain.entity;
 
+import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -10,12 +11,14 @@ public final class Transaction {
     private Type type;
     private double amount;
     private String description;
+    private LocalDateTime createdAt;
 
-    private Transaction(UUID id, Type type, double amount, String description) {
+    private Transaction(UUID id, Type type, double amount, String description, LocalDateTime createdAt) {
         this.id = id;
         this.type = type;
         this.amount = amount;
         this.description = description;
+        this.createdAt = createdAt;
     }
 
     public static Transaction create(Type type, double amount, String description) {
@@ -23,7 +26,86 @@ public final class Transaction {
         validateAmount(amount);
         validateDescription(description);
 
-        return new Transaction(UUID.randomUUID(), type, amount, description);
+        return new Transaction(UUID.randomUUID(), type, amount, description, LocalDateTime.now());
+    }
+
+    public static Transaction copy(Transaction other) {
+        validateOther(other);
+
+        return new Transaction(
+                other.id,
+                other.type,
+                other.amount,
+                other.description,
+                other.createdAt
+        );
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public Type getType() {
+        return  type;
+    }
+
+    public double getAmount() {
+        return amount;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setType(Type type) {
+        validateType(type);
+        this.type = type;
+    }
+
+    public void setAmount(double amount) {
+        validateAmount(amount);
+        this.amount = amount;
+    }
+
+    public void setDescription(String description) {
+        validateDescription(description);
+        this.description = description;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        validateCreatedAt(createdAt);
+        this.createdAt = createdAt;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) {
+            return true;
+        }
+
+        if (!(other instanceof Transaction t)) {
+            return false;
+        }
+
+        return id.equals(t.id) && type.equals(t.type) &&
+                Double.compare(amount, t.amount) == 0 &&
+                description.equals(t.description) &&
+                createdAt.equals(t.createdAt);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, type, amount, description, createdAt);
+    }
+
+    @Override
+    public String toString() {
+        return String.format("{type: %s, amount: %.2f, description: %s, createdAt: %s}",
+                type, amount, description, createdAt);
     }
 
     private static void validateType(Type type) {
@@ -46,75 +128,11 @@ public final class Transaction {
         }
     }
 
-    public static Transaction copy(Transaction other) {
-        validateOther(other);
-
-        return new Transaction(
-                other.id,
-                other.type,
-                other.amount,
-                other.description
-        );
-    }
-
     private static void validateOther(Transaction other) {
         Objects.requireNonNull(other, "Other must not be null");
     }
 
-    public UUID getId() {
-        return id;
-    }
-
-    public Type getType() {
-        return  type;
-    }
-
-    public double getAmount() {
-        return amount;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setType(Type type) {
-        validateType(type);
-        this.type = type;
-    }
-
-    public void setAmount(double amount) {
-        validateAmount(amount);
-        this.amount = amount;
-    }
-
-    public void setDescription(String description) {
-        validateDescription(description);
-        this.description = description;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        if (this == other) {
-            return true;
-        }
-
-        if (!(other instanceof Transaction t)) {
-            return false;
-        }
-
-        return id.equals(t.id) && type.equals(t.type) &&
-                Double.compare(amount, t.amount) == 0 &&
-                description.equals(t.description);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, type, amount, description);
-    }
-
-    @Override
-    public String toString() {
-        return String.format("{type: %s, amount: %.2f, description: %S}",
-                type, amount, description);
+    private static void validateCreatedAt(LocalDateTime createdAt) {
+        Objects.requireNonNull(createdAt, "Created at must not be null");
     }
 }

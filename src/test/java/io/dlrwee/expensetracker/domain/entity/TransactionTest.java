@@ -6,6 +6,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+
 import static io.dlrwee.expensetracker.domain.entity.Transaction.Type.EXPENSE;
 import static io.dlrwee.expensetracker.domain.entity.Transaction.Type.INCOME;
 import static org.assertj.core.api.Assertions.*;
@@ -27,6 +30,7 @@ class TransactionTest {
             assertThat(transaction.getType()).isEqualTo(TYPE);
             assertThat(transaction.getAmount()).isEqualTo(AMOUNT);
             assertThat(transaction.getDescription()).isEqualTo(DESCRIPTION);
+            assertThat(transaction.getCreatedAt()).isCloseTo(LocalDateTime.now(), within(1, ChronoUnit.MINUTES));
         }
 
         @Nested
@@ -93,6 +97,7 @@ class TransactionTest {
             assertThat(copy.getType()).isEqualTo(transaction.getType());
             assertThat(copy.getAmount()).isEqualTo(transaction.getAmount());
             assertThat(copy.getDescription()).isEqualTo(transaction.getDescription());
+            assertThat(copy.getCreatedAt()).isEqualTo(transaction.getCreatedAt());
         }
 
         @Nested
@@ -200,6 +205,34 @@ class TransactionTest {
                 Transaction transaction = Transaction.create(TYPE, AMOUNT, DESCRIPTION);
 
                 assertThatThrownBy(() -> transaction.setDescription(null))
+                        .isInstanceOf(NullPointerException.class)
+                        .hasMessage(expectedMessage);
+            }
+        }
+    }
+
+    @Nested
+    class SetCreatedAt {
+        @Test
+        @DisplayName("Should set new date")
+        public void shouldSetNewDate() {
+            LocalDateTime newDateTime = LocalDateTime.now().minusDays(2);
+            Transaction transaction = Transaction.create(TYPE, AMOUNT, DESCRIPTION);
+
+            transaction.setCreatedAt(newDateTime);
+
+            assertThat(transaction.getCreatedAt()).isEqualTo(newDateTime);
+        }
+
+        @Nested
+        class Null {
+            @Test
+            @DisplayName("Should throw exception if created at is null")
+            void shouldThrowExceptionIfCreatedAtIsNull() {
+                String expectedMessage = "Created at must not be null";
+                Transaction transaction = Transaction.create(TYPE, AMOUNT, DESCRIPTION);
+
+                assertThatThrownBy(() -> transaction.setCreatedAt(null))
                         .isInstanceOf(NullPointerException.class)
                         .hasMessage(expectedMessage);
             }
