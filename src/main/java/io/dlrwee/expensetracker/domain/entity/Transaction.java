@@ -102,12 +102,14 @@ public final class Transaction {
             return false;
         }
 
-        return id.equals(t.id);
+        return id.equals(t.id) && type.equals(t.type) &&
+                Double.compare(amount, t.amount) == 0 &&
+                description.equals(t.description);
     }
 
     @Override
     public int hashCode() {
-        return id.hashCode();
+        return Objects.hash(id, type, amount, description);
     }
 
     @Override
