@@ -10,6 +10,7 @@ public interface TransactionRepository {
     void save(Transaction transaction);
     Optional<Transaction> findById(UUID id);
     List<Transaction> findAll();
+    List<Transaction> findAll(Sort sort);
     void deleteById(UUID id);
     void deleteAll();
     long count();

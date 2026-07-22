@@ -5,8 +5,16 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.MethodSource;
 
+import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -23,6 +31,7 @@ public abstract class AbstractTransactionRepositoryTest<R extends TransactionRep
         repository.deleteAll();
         first = Transaction.create(Transaction.Type.EXPENSE, 1, "first");
         second = Transaction.create(Transaction.Type.INCOME, 2, "second");
+        second.setCreatedAt(second.getCreatedAt().plusDays(1));
     }
 
     @Nested
@@ -108,6 +117,42 @@ public abstract class AbstractTransactionRepositoryTest<R extends TransactionRep
                         .isInstanceOf(NullPointerException.class)
                         .hasMessage("Id must not be null");
             }
+        }
+    }
+
+    // TODO: add adge cases tests
+    @Nested
+    class FindAllSort {
+        @ParameterizedTest(name = "field: {0}, direction: {1}")
+        @MethodSource("provideFieldAndDirection")
+        @DisplayName("Should sort correctly")
+        void shouldSortCorrectly(String field, Sort.Direction direction) {
+            repository.save(first);
+            repository.save(second);
+            Sort sort = new Sort(field, direction);
+
+            List<Transaction> got = repository.findAll(sort);
+
+            Comparator<Transaction> comparator = switch (field) {
+                case "id" -> Comparator.comparing(Transaction::getId);
+                case "type" -> Comparator.comparing(Transaction::getType);
+                case "amount" -> Comparator.comparing(Transaction::getAmount);
+                case "description" -> Comparator.comparing(Transaction::getDescription);
+                case "createdAt" -> Comparator.comparing(Transaction::getCreatedAt);
+                default -> throw new AssertionError("Couldn't get here");
+            };
+            if (direction == Sort.Direction.DESC) {
+                comparator = comparator.reversed();
+            }
+            assertThat(got).isSortedAccordingTo(comparator);
+        }
+
+        static Stream<Arguments> provideFieldAndDirection() {
+            return Stream.of("id", "type", "amount", "description", "createdAt")
+                    .flatMap(field -> Stream.of(
+                            Arguments.of(field, Sort.Direction.ASC),
+                            Arguments.of(field, Sort.Direction.DESC)
+                    ));
         }
     }
 
