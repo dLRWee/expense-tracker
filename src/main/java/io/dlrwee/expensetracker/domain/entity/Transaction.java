@@ -104,8 +104,8 @@ public final class Transaction {
 
     @Override
     public String toString() {
-        return String.format("{type: %s, amount: %.2f, description: %s, createdAt: %s}",
-                type, amount, description, createdAt);
+        return String.format("{id: %s, type: %s, amount: %.2f, description: %s, createdAt: %s}",
+                id, type, amount, description, createdAt);
     }
 
     private static void validateType(Type type) {
