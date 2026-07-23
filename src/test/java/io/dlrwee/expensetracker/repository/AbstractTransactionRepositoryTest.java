@@ -1,6 +1,7 @@
 package io.dlrwee.expensetracker.repository;
 
 import io.dlrwee.expensetracker.domain.entity.Transaction;
+import io.dlrwee.expensetracker.exception.NoSuchPropertyException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -14,6 +15,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.*;
@@ -120,7 +122,6 @@ public abstract class AbstractTransactionRepositoryTest<R extends TransactionRep
         }
     }
 
-    // TODO: add adge cases tests
     @Nested
     class FindAllSort {
         @ParameterizedTest(name = "field: {0}, direction: {1}")
@@ -153,6 +154,31 @@ public abstract class AbstractTransactionRepositoryTest<R extends TransactionRep
                             Arguments.of(field, Sort.Direction.ASC),
                             Arguments.of(field, Sort.Direction.DESC)
                     ));
+        }
+
+        @Nested
+        class Exception {
+            @Test
+            @DisplayName("Should throw exception if no such property")
+            void shouldThrowExceptionIfNoSuchProperty() {
+                String nonExistentProperty = UUID.randomUUID().toString();
+                Sort sort = new Sort(nonExistentProperty, Sort.Direction.ASC);
+
+                assertThatThrownBy(() -> repository.findAll(sort))
+                        .isInstanceOf(NoSuchPropertyException.class)
+                        .hasMessage("No such property: " + nonExistentProperty);
+            }
+        }
+
+        @Nested
+        class Null {
+            @Test
+            @DisplayName("Should throw exception if sort is null")
+            void shouldThrowExceptionIfSortIsNull() {
+                assertThatThrownBy(() -> repository.findAll(null))
+                        .isInstanceOf(NullPointerException.class)
+                        .hasMessage("Sort must not be null");
+            }
         }
     }
 
